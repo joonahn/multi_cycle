@@ -161,7 +161,7 @@ module PC(in, out, PVSWriteEn);
 endmodule
 
 module Control(clk, instr,
-   MemRead, RegDst, SavePC, RegWrite, ExtWay, ALUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, ItoD,
+   MemRead, RegDst, SavePC, RegWrite, ExtWay, ALUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD,
    PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N);
    input wire clk;
    input wire[`WORD_SIZE-1:0] instr;
@@ -177,7 +177,7 @@ module Control(clk, instr,
    output reg Branch;
    output reg JRLJPR;
    output reg Jump;
-   output reg ItoD;
+   output reg IorD;
 
    output reg PVSWriteEnPC;
    output reg PVSWriteEnReg;
@@ -200,7 +200,7 @@ module Control(clk, instr,
       Branch <= 0;
       JRLJPR <= 0;
       Jump <= 0;
-      ItoD <= 0;
+      IorD <= 0;
    end
 
    // Moore Machine state output
@@ -209,7 +209,7 @@ module Control(clk, instr,
       case(state)
          0: begin
             MemRead <=1;
-            ItoD <= 1;
+            IorD <= 1;
             MemWrite <= 0;
             RegWrite <= 0;
             Branch <= 0;
@@ -320,7 +320,7 @@ module Control(clk, instr,
 
    // Transition
    always @(posedge clk) begin
-      ItoD <= 0;
+      IorD <= 0;
       case (state)
          0: begin
          // IF stage of ALL INSTRUCTIONS
