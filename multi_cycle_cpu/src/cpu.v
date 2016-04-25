@@ -162,9 +162,10 @@ endmodule
 
 module Control(clk, instr,
    MemRead, RegDst, SavePC, RegWrite, ExtWay, ALUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, ItoD,
-   PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem);
+   PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N);
    input wire clk;
    input wire[`WORD_SIZE-1:0] instr;
+   input wire Reset_N;
    output reg MemRead;
    output reg RegDst;
    output reg SavePC;
@@ -183,6 +184,24 @@ module Control(clk, instr,
    output reg PVSWriteEnMem;
 
    reg [5:0]state;
+
+   // Control state initialization
+   always @(negedge Reset_N)
+   begin
+      state <= 0;
+      MemRead <= 0;
+      RegDst <= 0;
+      SavePC <= 0;
+      RegWrite <= 0;
+      ExtWay <= 0;
+      ALUSrc <= 0;
+      MemWrite <= 0;
+      MemtoReg <= 0;
+      Branch <= 0;
+      JRLJPR <= 0;
+      Jump <= 0;
+      ItoD <= 0;
+   end
 
    // Moore Machine state output
    always @(state)
