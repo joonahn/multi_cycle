@@ -26,7 +26,7 @@ module cpu(Clk, Reset_N, readM, writeM, address, data, num_inst, output_port, is
    output is_halted;
    wire is_halted;
 
-   Control congen(Clk, instr, MemRead, REgDst, SavePc, RegWrite, ExtWay, AlUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD, PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N);
+   Control congen(Clk, instr, MemRead, REgDst, SavePc, RegWrite, ExtWay, AlUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD, PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted);
    Datapath dpth(Clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port);
 
    // TODO : Implement your multi-cycle CPU!
@@ -165,10 +165,11 @@ endmodule
 
 module Control(clk, instr,
    MemRead, RegDst, SavePC, RegWrite, ExtWay, ALUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD,
-   PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N);
+   PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted);
    input wire clk;
    input wire[`WORD_SIZE-1:0] instr;
    input wire Reset_N;
+   output reg is_halted;
    output reg MemRead;
    output reg RegDst;
    output reg SavePC;
@@ -204,6 +205,7 @@ module Control(clk, instr,
       JRLJPR <= 0;
       Jump <= 0;
       IorD <= 0;
+      is_halted <= 0;
    end
 
    // Moore Machine state output
@@ -425,6 +427,7 @@ module Control(clk, instr,
                      end
                      29: begin
                         // SYSTEM HALTS
+                        is_halted <= 1;
                      end
                      28: 
                      begin
