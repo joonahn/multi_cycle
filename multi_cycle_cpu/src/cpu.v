@@ -1,5 +1,6 @@
 `timescale 1ns/1ns
-`define WORD_SIZE 16    // data and address word size
+`define WORD_SIZE 16    // data and address word size			  
+//JYP
 
 module cpu(Clk, Reset_N, readM, writeM, address, data, num_inst, output_port, is_halted);
    input Clk;
