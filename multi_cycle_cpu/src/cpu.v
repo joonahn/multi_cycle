@@ -182,7 +182,7 @@ module Control(clk, instr,
    output reg PVSWriteEnReg;
    output reg PVSWriteEnMem;
 
-   reg state[5:0];
+   reg [5:0]state;
 
    // Moore Machine state output
    always @(state)
@@ -545,6 +545,8 @@ module ALUcontrol(instr, out);
       endcase
    end
 
+endmodule
+
 module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, 
    RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, bcond, JRLJPR, Jump, output_port);
 
@@ -582,7 +584,7 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    wire [`WORD_SIZE-1:0]MemAdrsD;
    wire [`WORD_SIZE-1:0]MemAdrsSel;
    wire [`WORD_SIZE-1:0]MemData;
-   reg [`WORD_SIZE-1:0]inst;
+   wire [`WORD_SIZE-1:0]inst;
    wire [1:0]RFRName1;
    wire [1:0]RFRName2;
    wire [1:0]RFWNotSavePC;
@@ -599,14 +601,16 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    wire [`WORD_SIZE-1:0]WBData;
    wire [3:0]ALUConOut;
 
-   assign PCplus4=PC+4;
+   reg [`WORD_SIZE-1:0]instbuf;
+
+   assign PCplus4=PCOut+4;
    assign branchPC=PCplus4+ExtendedNum;
-   assign RSneqPC=(Branch&&Bcond)? branchPC : PCplus4;
+   assign RSneqPC=(Branch&&bcond)? branchPC : PCplus4;
    assign RSeqPC=RFRData1;
    assign jumpPC=PCplus4[15:12]||inst[11:0];
    assign njumpPC=JRLJPR ? RSeqPC : RSneqPC;
-   assign PCIn=Jump ? jumpPC : njumpPc;
-   assign MemAdrsI=PCout;
+   assign PCIn=Jump ? jumpPC : njumpPC;
+   assign MemAdrsI=PCOut;
    assign RFRName1=inst[11:10];
    assign RFRName2=inst[9:8];
    assign RFWNotSavePC=RegDst ? inst[7:6] : inst[9:8];
@@ -620,6 +624,10 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    assign MemData=IorD ? 16'hzzzz : RFRData2;
    assign inst = IorD ? MemData : 16'hzzzz;
    assign WB = IorD ? 16'hzzzz : MemData;
+
+   always @(inst) begin
+      instbuf=inst;
+   end
 
    PC pcounter(PCIn, PCOut, PVSWriteEnPC);
    Memory memory(clk, Reset_N, MemRead, MemWrite, MemAdrsSel, MemData);

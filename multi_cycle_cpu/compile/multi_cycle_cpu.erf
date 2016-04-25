@@ -1,0 +1,40 @@
+MESSAGE "Pass 1. Scanning modules hierarchy."
+BEGINPROGRESS Compiling...
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol WB has not been declared in module Datapath." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 626  15
+UPDATEPROGRESS 11
+UPDATEPROGRESS 23
+UPDATEPROGRESS 35
+MESSAGE "Pass 2. Processing instantiations."
+UPDATEPROGRESS 45
+WARNING VCP2597 "Some unconnected ports remain at instance: alu. Module ALU has unconnected  port(s) : bcond." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 635  1
+MESSAGE "Pass 3. Processing behavioral statements."
+WARNING VCP2641 "Redundant digits given in number 8'hFFFF." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 95  46
+WARNING VCP2641 "Redundant digits given in number 8'h0000." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 95  62
+WARNING VCP2641 "Redundant digits given in number 8'h0000." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 96  22
+UPDATEPROGRESS 48
+UPDATEPROGRESS 52
+UPDATEPROGRESS 55
+UPDATEPROGRESS 59
+UPDATEPROGRESS 62
+UPDATEPROGRESS 66
+UPDATEPROGRESS 69
+UPDATEPROGRESS 73
+UPDATEPROGRESS 80
+MESSAGE "Running Optimizer."
+MESSAGE "ELB/DAG code generating."
+UPDATEPROGRESS 81
+UPDATEPROGRESS 83
+UPDATEPROGRESS 85
+UPDATEPROGRESS 87
+UPDATEPROGRESS 89
+UPDATEPROGRESS 90
+UPDATEPROGRESS 92
+UPDATEPROGRESS 94
+UPDATEPROGRESS 96
+UPDATEPROGRESS 98
+UPDATEPROGRESS 100
+MESSAGE "Unit top modules: Control Datapath cpu_TB."
+MESSAGE "$root top modules: Control Datapath cpu_TB."
+ENDPROGRESS Compiling...
+SUCCESS "Compile success 0 Errors 4 Warnings  Analysis time: 1[s]."
+MESSAGE "done"
