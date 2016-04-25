@@ -26,6 +26,9 @@ module cpu(Clk, Reset_N, readM, writeM, address, data, num_inst, output_port, is
    output is_halted;
    wire is_halted;
 
+   Control congen(Clk, instr, MemRead, REgDst, SavePc, RegWrite, ExtWay, AlUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD, PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N);
+   Datapath dpth(Clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port);
+
    // TODO : Implement your multi-cycle CPU!
 
 endmodule
@@ -566,8 +569,8 @@ module ALUcontrol(instr, out);
 
 endmodule
 
-module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, 
-   RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, bcond, JRLJPR, Jump, output_port);
+module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
+   RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port);
 
    input wire clk;
    input wire Reset_N;
@@ -585,11 +588,10 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    input wire MemtoReg;
    input wire ExtWay;
    input wire Branch;
-   input wire bcond;
    input wire JRLJPR;
    input wire Jump;
+   output wire [`WORD_SIZE-1:0]inst;
    output reg output_port;
-   
    
    wire [`WORD_SIZE-1:0]PCOut;
    wire [`WORD_SIZE-1:0]PCplus4;
@@ -603,7 +605,6 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    wire [`WORD_SIZE-1:0]MemAdrsD;
    wire [`WORD_SIZE-1:0]MemAdrsSel;
    wire [`WORD_SIZE-1:0]MemData;
-   wire [`WORD_SIZE-1:0]inst;
    wire [1:0]RFRName1;
    wire [1:0]RFRName2;
    wire [1:0]RFWNotSavePC;
