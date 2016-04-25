@@ -26,8 +26,8 @@ module cpu(Clk, Reset_N, readM, writeM, address, data, num_inst, output_port, is
    output is_halted;
    wire is_halted;
 
-   Control congen(Clk, instr, MemRead, REgDst, SavePc, RegWrite, ExtWay, AlUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD, PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted);
-   Datapath dpth(Clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port);
+   Control congen(Clk, instr, readM, RegDst, SavePc, RegWrite, ExtWay, ALUSrc, writeM, MemtoReg, Branch, JRLJPR, Jump, IorD, PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted);
+   Datapath dpth(Clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, RegWrite, RegDst, IorD, readM, writeM, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port);
 
    // TODO : Implement your multi-cycle CPU!
 
@@ -164,7 +164,7 @@ module PC(in, out, PVSWriteEn);
 endmodule
 
 module Control(clk, instr,
-   MemRead, RegDst, SavePC, RegWrite, ExtWay, ALUSrc, MemRead, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD,
+   MemRead, RegDst, SavePC, RegWrite, ExtWay, ALUSrc, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD,
    PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted);
    input wire clk;
    input wire[`WORD_SIZE-1:0] instr;

@@ -1,17 +1,35 @@
 MESSAGE "Pass 1. Scanning modules hierarchy."
 MESSAGE_SP VCP2113 "Module \$root found in current working library."
 BEGINPROGRESS Compiling...
-MESSAGE_SP VCP2876 "Implicit net declaration, symbol WB has not been declared in module Datapath." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 644  15
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol WB has not been declared in module Datapath." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 649  15
 UPDATEPROGRESS 11
 UPDATEPROGRESS 23
 UPDATEPROGRESS 35
 MESSAGE "Pass 2. Processing instantiations."
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol instr has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  29
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol RegDst has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  44
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol SavePc has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  52
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol RegWrite has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  62
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol ExtWay has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  70
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol ALUSrc has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  78
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol MemtoReg has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  96
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol Branch has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  104
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol JRLJPR has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  112
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol Jump has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  118
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol IorD has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  124
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol PVSWriteEnPC has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  138
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol PVSWriteEnReg has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  153
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol PVSWriteEnMem has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 29  168
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol ALUop has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 30  120
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol SavePC has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 30  136
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol inst has not been declared in module cpu." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 30  182
+MESSAGE_SP VCP2876 "Implicit net declaration, symbol bcond has not been declared in module Datapath." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 658  50
 UPDATEPROGRESS 45
-WARNING VCP2597 "Some unconnected ports remain at instance: alu. Module ALU has unconnected  port(s) : bcond." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 653  1
+WARNING VCP2597 "Some unconnected ports remain at instance: alu. Module ALU has unconnected  port(s) : bcond." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 658  1
 MESSAGE "Pass 3. Processing behavioral statements."
-WARNING VCP2641 "Redundant digits given in number 8'hFFFF." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 95  46
-WARNING VCP2641 "Redundant digits given in number 8'h0000." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 95  62
-WARNING VCP2641 "Redundant digits given in number 8'h0000." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 96  22
+WARNING VCP2641 "Redundant digits given in number 8'hFFFF." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 98  46
+WARNING VCP2641 "Redundant digits given in number 8'h0000." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 98  62
+WARNING VCP2641 "Redundant digits given in number 8'h0000." "C:/My_Designs/multi_cycle/multi_cycle_cpu/src/cpu.v" 99  22
 UPDATEPROGRESS 48
 UPDATEPROGRESS 52
 UPDATEPROGRESS 55
@@ -35,8 +53,8 @@ UPDATEPROGRESS 94
 UPDATEPROGRESS 96
 UPDATEPROGRESS 98
 UPDATEPROGRESS 100
-MESSAGE "Unit top modules: Control Datapath cpu_TB."
-MESSAGE "$root top modules: Control Datapath cpu_TB."
+MESSAGE "Unit top modules: cpu_TB."
+MESSAGE "$root top modules: cpu_TB."
 ENDPROGRESS Compiling...
 SUCCESS "Compile success 0 Errors 4 Warnings  Analysis time: 0[s]."
 MESSAGE "done"
