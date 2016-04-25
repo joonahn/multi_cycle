@@ -1,0 +1,3 @@
+.\src\cpu.v
+.\src\cpu_TB.v
+.\src\Memory.v
