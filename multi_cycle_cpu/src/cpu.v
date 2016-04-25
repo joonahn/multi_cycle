@@ -190,7 +190,7 @@ module Control(clk, instr,
    reg [5:0]state;
 
    // Control state initialization
-   always @(negedge Reset_N)
+   always @(posedge Reset_N)
    begin
       state <= 0;
       MemRead <= 0;
