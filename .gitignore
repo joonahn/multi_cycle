@@ -3,3 +3,4 @@ multi_cycle_cpu/compile/
 multi_cycle_cpu/multi_cycle_cpu/
 multi_cycle_cpu/hdl_assist/
 multi_cycle_cpu/src/wave.asdb
+library.cfg
