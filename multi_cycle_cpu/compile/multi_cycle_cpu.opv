@@ -1,1 +1,0 @@
- -erf "C:\My_Designs\multi_cycle\multi_cycle_cpu\compile\multi_cycle_cpu.erf" -work multi_cycle_cpu -lc C:/My_Designs/multi_cycle/library.cfg -fl C:/My_Designs/multi_cycle/multi_cycle_cpu/projlib.cfg -o C:/My_Designs/multi_cycle/multi_cycle_cpu/compile -l "multi_cycle_cpu" -sve   -O2

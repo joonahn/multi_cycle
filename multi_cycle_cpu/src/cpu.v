@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-`define WORD_SIZE 16    // data and address word size			  
+`define WORD_SIZE 16    // data and address word size           
 //JYP
 
 module cpu(Clk, Reset_N, readM, writeM, address, data, num_inst, output_port, is_halted);
@@ -7,8 +7,6 @@ module cpu(Clk, Reset_N, readM, writeM, address, data, num_inst, output_port, is
    wire Clk;
    input Reset_N;
    wire Reset_N;
-   
-
    output readM;
    wire readM;
    output writeM;
@@ -26,67 +24,46 @@ module cpu(Clk, Reset_N, readM, writeM, address, data, num_inst, output_port, is
    output is_halted;
    wire is_halted;
 
-   Control congen(Clk, instr, readM, RegDst, SavePc, RegWrite, ExtWay, ALUSrc, writeM, MemtoReg, Branch, JRLJPR, Jump, IorD, PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted);
-   Datapath dpth(Clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, RegWrite, RegDst, IorD, readM, writeM, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port);
+   wire [`WORD_SIZE-1:0] inst;
+   wire [3:0] ALUop;
 
-   // TODO : Implement your multi-cycle CPU!
 
+   // Control Module Definition
+   Control congen(Clk, inst, readM, RegDst, SavePC, RegWrite, ExtWay, ALUSrc,
+      writeM, MemtoReg, Branch, JRLJPR, Jump, IorD, 
+      PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted, num_inst);
+
+   // Datapath Module Definition
+   Datapath dpth(Clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC, 
+      RegWrite, RegDst, IorD, readM, writeM, ALUop, ALUSrc, SavePC, 
+      MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port, address, data);
 endmodule
 
 
 module ALU(A, B,ALUcontrol, out, bcond);
    input wire[`WORD_SIZE-1:0] A;
    input wire[`WORD_SIZE-1:0] B;
-   input wire[5:0] ALUcontrol;
-   output reg[`WORD_SIZE-1:0] out;
-   output reg bcond;
+   input wire[3:0] ALUcontrol;
+   output wire[`WORD_SIZE-1:0] out;
+   output wire bcond;
 
-   always @(A or B) begin
-      case (ALUcontrol)
-         0: begin
-            out <= A+B;
-         end
-         1: begin
-            out <= A + (~B) + 1;
-         end
-         2: begin
-            out <= A & B;
-         end
-         3: begin
-            out <= A | B;
-         end
-         4: begin
-            out <= (~A);
-         end
-         5: begin
-            out <= (~A) + 1;
-         end
-         6: begin
-            out <= A << 1;
-         end
-         7: begin
-            out <= A >> 1;
-         end
-         8: begin
-            out <= A << 8;
-         end
-         9: begin
-            out <= A;
-         end
-         10: begin
-            bcond <= (A!=B);
-         end
-         11: begin
-            bcond <= (A==B);
-         end
-         12: begin
-            bcond <= (A>0);
-         end
-         13: begin
-            bcond <= (A<0);
-         end
-      endcase
-   end
+   assign out = 
+      (ALUcontrol==0)? A+B :
+      (ALUcontrol==1)? A + (~B) + 1 :
+      (ALUcontrol==2)? A & B :
+      (ALUcontrol==3)? A | B :
+      (ALUcontrol==4)? (~A) :
+      (ALUcontrol==5)? (~A) + 1 :
+      (ALUcontrol==6)? A << 1 :
+      (ALUcontrol==7)? A >> 1 :
+      (ALUcontrol==8)? B << 8 :
+      (ALUcontrol==9)? A : 0;
+
+   assign bcond =
+      (ALUcontrol==10)? (A!=B) :
+      (ALUcontrol==11)? (A==B) :
+      (ALUcontrol==12)? (A<16'h8000 && A>0) :
+      (ALUcontrol==13)? (A>16'h7FFF) : 0;
 
 endmodule
 
@@ -95,12 +72,11 @@ module NumberExtender(in, SignExt, ZeroExt);
    output wire[`WORD_SIZE-1:0] SignExt;
    output wire[`WORD_SIZE-1:0] ZeroExt;
 
-   assign SignExt = (in[(`WORD_SIZE/2)-1] == 1) ? {8'hFFFF, in} : {8'h0000, in};
-   assign ZeroExt = {8'h0000, in};
-
+   assign SignExt = (in[(`WORD_SIZE/2)-1] == 1) ? {8'hFF, in} : {8'h00, in};
+   assign ZeroExt = {8'h00, in};
 endmodule
 
-module RF(readregA, readregB, writereg, writedata, RegWrite, regoutA, regoutB, PVSWriteEn);
+module RF(readregA, readregB, writereg, writedata, RegWrite, regoutA, regoutB, PVSWriteEn, clk);
 
    input [1:0]readregA;
    input [1:0]readregB;
@@ -108,69 +84,61 @@ module RF(readregA, readregB, writereg, writedata, RegWrite, regoutA, regoutB, P
    input [`WORD_SIZE-1:0]writedata;
    input RegWrite;
    input PVSWriteEn;
-   output reg [`WORD_SIZE-1:0]regoutA;
-   output reg [`WORD_SIZE-1:0]regoutB;
+   input wire clk;
+   output wire [`WORD_SIZE-1:0]regoutA;
+   output wire [`WORD_SIZE-1:0]regoutB;
    reg [`WORD_SIZE-1:0]r0;
    reg [`WORD_SIZE-1:0]r1;
    reg [`WORD_SIZE-1:0]r2;
    reg [`WORD_SIZE-1:0]r3;
 
-   always @(readregA, readregB)
-   begin
-      case(readregA)
-      0:  regoutA=r0;
-      1:  regoutA=r1;
-      2:  regoutA=r2;
-      3:  regoutA=r3;
-      endcase
+   assign regoutA = (readregA==0)?r0:((readregA==1)?r1:((readregA==2)?r2:r3));
+   assign regoutB = (readregB==0)?r0:((readregB==1)?r1:((readregB==2)?r2:r3));
 
-      case(readregB)
-      0:  regoutB=r0;
-      1:  regoutB=r1;
-      2:  regoutB=r2;
-      3:  regoutB=r3;
-      endcase
-   end
-
-   always @(writereg)
-   begin
-      if(RegWrite==1)
+   always @(posedge clk) begin
+      if(PVSWriteEn)
       begin
-         @(posedge PVSWriteEn)
-         begin
-            case(writereg)
-            0:  r0=writedata;
-            1:  r1=writedata;
-            2:  r2=writedata;
-            3:  r3=writedata;
-            endcase
-         end
-
+         case(writereg)
+         0:  r0=writedata;
+         1:  r1=writedata;
+         2:  r2=writedata;
+         3:  r3=writedata;
+         endcase
       end
    end
 
 endmodule
 
-module PC(in, out, PVSWriteEn);
+module PC(in, out, PVSWriteEn, Reset_N, clk);
    input wire [`WORD_SIZE-1:0] in;
    input wire PVSWriteEn;
+   input wire Reset_N;
+   input wire clk;
    output reg [`WORD_SIZE-1:0] out;
 
-   always @(PVSWriteEn)
+   always @(posedge Reset_N)
    begin
-      out <= in;
+      out <= 0;
    end
 
+
+   always @(posedge clk)
+   begin
+      if(PVSWriteEn)
+      begin
+         out <= in;
+      end
+   end
 endmodule
 
 module Control(clk, instr,
    MemRead, RegDst, SavePC, RegWrite, ExtWay, ALUSrc, MemWrite, MemtoReg, Branch, JRLJPR, Jump, IorD,
-   PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted);
+   PVSWriteEnPC, PVSWriteEnReg, PVSWriteEnMem, Reset_N, is_halted, num_inst);
    input wire clk;
    input wire[`WORD_SIZE-1:0] instr;
    input wire Reset_N;
    output reg is_halted;
-   output reg MemRead;
+   output wire MemRead;
    output reg RegDst;
    output reg SavePC;
    output reg RegWrite;
@@ -179,21 +147,41 @@ module Control(clk, instr,
    output reg MemWrite;
    output reg MemtoReg;
    output reg Branch;
-   output reg JRLJPR;
-   output reg Jump;
+   output wire JRLJPR;
+   output wire Jump;
    output reg IorD;
+   output wire [`WORD_SIZE-1:0]num_inst;
 
-   output reg PVSWriteEnPC;
-   output reg PVSWriteEnReg;
-   output reg PVSWriteEnMem;
+   output wire PVSWriteEnPC;
+   output wire PVSWriteEnReg;
+   output wire PVSWriteEnMem;
 
    reg [5:0]state;
+   reg [`WORD_SIZE-1:0] inst_counter;
+   wire[3:0]OPcode;
+   wire[5:0]Funct;
+
+   // Assign Instruction counter
+   assign num_inst = inst_counter;
+
+   // Assign IF-finished instructions
+   assign OPcode = instr[`WORD_SIZE-1:`WORD_SIZE-4];
+   assign Funct = instr[5:0];
+   assign Jump = (state==0 && OPcode==9) || (state==16);
+   assign JRLJPR = (Funct==25)||(Funct==26);
+   assign MemRead = (state==10) || (state==9) || (state==0);
+
+   // Assign PVSWriteEn Signals
+   assign PVSWriteEnMem = (state==18)?0:(OPcode==8);
+   // assign PVSWriteEnReg = (state==18)?0:((OPcode==15 && ((Funct>-1 && Funct<8) || Funct == 26)) || (OPcode>3 && OPcode<8));
+   assign PVSWriteEnReg = state==3 || state==6 || state == 10 || state==16 || state== 17;
+   assign PVSWriteEnPC = (OPcode==9 || (OPcode==15 && (Funct==25 || Funct==28))) || 
+                           state==3 || state==6 || state==10 || state==14 || state==15 || state==16 || state==17;
 
    // Control state initialization
    always @(posedge Reset_N)
    begin
       state <= 0;
-      MemRead <= 0;
       RegDst <= 0;
       SavePC <= 0;
       RegWrite <= 0;
@@ -202,33 +190,40 @@ module Control(clk, instr,
       MemWrite <= 0;
       MemtoReg <= 0;
       Branch <= 0;
-      JRLJPR <= 0;
-      Jump <= 0;
-      IorD <= 0;
+      IorD <= 1;
       is_halted <= 0;
+      inst_counter <= 1;
    end
 
    // Moore Machine state output
    always @(state)
    begin
+   
+      // Memory Selection 
       case(state)
          0: begin
-            MemRead <=1;
-            IorD <= 1;
+            IorD<=1;
+         end
+         default: begin
+            IorD<=0;
+         end
+      endcase
+
+      // Control Signal
+      case(state)
+         0: begin
             MemWrite <= 0;
             RegWrite <= 0;
             Branch <= 0;
-            JRLJPR <= 0;
-            Jump <= 0;
          end
          1: begin
             // R-type ID
             RegDst <= 1;
-            SavePC <= 1;
+            SavePC <= 0;
          end
          2: begin
             // R-type EX
-            ALUSrc <= 1;
+            ALUSrc <= 0;
          end
          3: begin
             // R-type WB
@@ -268,7 +263,6 @@ module Control(clk, instr,
          end
          9: begin
             // LW MEM
-            MemRead <= 1;
          end
          10: begin
             // LW WB
@@ -297,8 +291,6 @@ module Control(clk, instr,
             ExtWay <= 1;
             ALUSrc <= 0;
             Branch <= 1;
-            JRLJPR <= 0;
-            Jump <= 0;
          end
          16: begin
             // JAL WB
@@ -309,27 +301,30 @@ module Control(clk, instr,
             // JRL WB
             SavePC <= 1;
             RegWrite <= 1;
-            JRLJPR <= 1;
-            Jump <= 0;
+         end
+         18: begin
+            // System HALTS
+            state <= 0;
+            RegDst <= 0;
+            SavePC <= 0;
+            RegWrite <= 0;
+            ExtWay <= 0;
+            ALUSrc <= 0;
+            MemWrite <= 0;
+            MemtoReg <= 0;
+            Branch <= 0;
+            IorD <= 0;
+            is_halted <= 1;
          end
       endcase
    end
 
-   // PVSWriteEn signal delay
-   always @(PVSWriteEnMem or PVSWriteEnReg or PVSWriteEnPC) begin
-      #5;
-      PVSWriteEnPC <= 0;
-      PVSWriteEnReg <= 0;
-      PVSWriteEnMem <= 0;
-   end
-
    // Transition
    always @(posedge clk) begin
-      IorD <= 0;
       case (state)
          0: begin
          // IF stage of ALL INSTRUCTIONS
-            case (instr[`WORD_SIZE-1:`WORD_SIZE-4] == 5)
+            case (instr[`WORD_SIZE-1:`WORD_SIZE-4])
                0: begin
                   // Branch
                   state <= 15;
@@ -367,15 +362,16 @@ module Control(clk, instr,
                end
                8: begin
                   // SWD
-                  state <= 8;
+                  state <= 12;
                end
                9: begin
                   // JMP
-                  PVSWriteEnPC <= 1;
+                  inst_counter <= inst_counter + 1;
                end
                10: begin
                   // JAL
                   state <= 16;
+
                end
                15: begin
                   // switch by FUNCT
@@ -420,6 +416,10 @@ module Control(clk, instr,
                         // R-type ALU
                         state <= 1; 
                      end
+                     25:
+                     begin
+                        inst_counter <= inst_counter + 1;
+                     end
                      26: 
                      begin
                         // JRL
@@ -427,12 +427,12 @@ module Control(clk, instr,
                      end
                      29: begin
                         // SYSTEM HALTS
-                        is_halted <= 1;
+                        state <= 18;
                      end
                      28: 
                      begin
                         // WWD
-                        PVSWriteEnPC <= 1;
+                        inst_counter <= inst_counter + 1;
                      end
 
                   endcase
@@ -449,8 +449,7 @@ module Control(clk, instr,
          3: begin
             // R-type ALU WB -> IF
             state <= 0;
-            PVSWriteEnReg <= 1;
-            PVSWriteEnPC <= 1;
+            inst_counter <= inst_counter + 1;
          end
          4: begin
             // I-type ALU ID -> EX
@@ -462,8 +461,7 @@ module Control(clk, instr,
          6: begin
             // I-type ALU WB -> IF
             state <= 0;
-            PVSWriteEnReg <= 1;
-            PVSWriteEnPC <= 1;
+            inst_counter <= inst_counter + 1;
          end
          7: begin
             // LW ID -> EX
@@ -476,12 +474,12 @@ module Control(clk, instr,
             state <= 10;
          end
          10: begin
-            PVSWriteEnReg <= 1;
-            PVSWriteEnPC <= 1;
             state <= 0;
+            inst_counter <= inst_counter + 1;
          end
          11: begin
             state <= 0;
+            inst_counter <= inst_counter + 1;
          end
          12: begin
             state <= 13;
@@ -490,29 +488,26 @@ module Control(clk, instr,
             state <= 14;
          end
          14: begin
-            PVSWriteEnMem <= 1;
-            PVSWriteEnPC <= 1;
             state <= 0;
+            inst_counter <= inst_counter + 1;
          end
          15: begin
             // Br EX -> IF
-            PVSWriteEnPC <= 1;
             state <= 0;
+            inst_counter <= inst_counter + 1;
          end
          16: begin
             // JAL WB -> IF
-            PVSWriteEnReg <= 1;
-            PVSWriteEnPC <= 1;
             state <= 0;
+            inst_counter <= inst_counter + 1;
          end
          17: begin
             // JRL WB -> IF
-            PVSWriteEnReg <= 1;
             state <= 0;
+            inst_counter <= inst_counter + 1;
          end
       endcase
    end
-
 endmodule
 
 module ALUcontrol(instr, out);
@@ -569,11 +564,10 @@ module ALUcontrol(instr, out);
          end
       endcase
    end
-
 endmodule
 
 module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
-   RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst, output_port);
+   RegWrite, RegDst, IorD, MemRead, MemWrite, ALUop, ALUSrc, SavePC, MemtoReg, ExtWay, Branch, JRLJPR, Jump, inst_stabil, output_port, MemAdrsSel, MemData);
 
    input wire clk;
    input wire Reset_N;
@@ -585,7 +579,7 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    input wire IorD;
    input wire MemRead;
    input wire MemWrite;
-   input wire ALUop;
+   input wire [3:0]ALUop;
    input wire ALUSrc;
    input wire SavePC;
    input wire MemtoReg;
@@ -593,11 +587,15 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    input wire Branch;
    input wire JRLJPR;
    input wire Jump;
-   output wire [`WORD_SIZE-1:0]inst;
-   output reg output_port;
+   output wire [`WORD_SIZE-1:0]inst_stabil;
+   output wire [`WORD_SIZE-1:0]output_port;
+
+   output wire [`WORD_SIZE-1:0]MemAdrsSel;
+   output wire [`WORD_SIZE-1:0]MemData;
    
+   wire [`WORD_SIZE-1:0]inst;
    wire [`WORD_SIZE-1:0]PCOut;
-   wire [`WORD_SIZE-1:0]PCplus4;
+   wire [`WORD_SIZE-1:0]PCplus1;
    wire [`WORD_SIZE-1:0]branchPC;
    wire [`WORD_SIZE-1:0]RSneqPC;
    wire [`WORD_SIZE-1:0]RSeqPC;
@@ -606,8 +604,6 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    wire [`WORD_SIZE-1:0]PCIn;
    wire [`WORD_SIZE-1:0]MemAdrsI;
    wire [`WORD_SIZE-1:0]MemAdrsD;
-   wire [`WORD_SIZE-1:0]MemAdrsSel;
-   wire [`WORD_SIZE-1:0]MemData;
    wire [1:0]RFRName1;
    wire [1:0]RFRName2;
    wire [1:0]RFWNotSavePC;
@@ -622,40 +618,53 @@ module Datapath(clk, Reset_N, PVSWriteEnMem, PVSWriteEnReg, PVSWriteEnPC,
    wire [`WORD_SIZE-1:0]ALUinputB;
    wire [`WORD_SIZE-1:0]ALUoutput;
    wire [`WORD_SIZE-1:0]WBData;
+   wire [`WORD_SIZE-1:0]WBMem;
    wire [3:0]ALUConOut;
 
    reg [`WORD_SIZE-1:0]instbuf;
 
-   assign PCplus4=PCOut+4;
-   assign branchPC=PCplus4+ExtendedNum;
-   assign RSneqPC=(Branch&&bcond)? branchPC : PCplus4;
+   assign PCplus1=PCOut+1;
+   assign branchPC=PCplus1+ExtendedNum;
+   assign RSneqPC=(Branch&&bcond)? branchPC : PCplus1;
    assign RSeqPC=RFRData1;
-   assign jumpPC=PCplus4[15:12]||inst[11:0];
+   assign jumpPC={PCplus1[15:12],inst_stabil[11:0]};
    assign njumpPC=JRLJPR ? RSeqPC : RSneqPC;
    assign PCIn=Jump ? jumpPC : njumpPC;
    assign MemAdrsI=PCOut;
-   assign RFRName1=inst[11:10];
-   assign RFRName2=inst[9:8];
-   assign RFWNotSavePC=RegDst ? inst[7:6] : inst[9:8];
+   assign RFRName1=inst_stabil[11:10];
+   assign RFRName2=inst_stabil[9:8];
+   assign RFWNotSavePC=RegDst ? inst_stabil[7:6] : inst_stabil[9:8];
    assign RFWName=SavePC ? 2 : RFWNotSavePC;
-   assign RFWData=SavePC ? PCplus4 : WBData;
+   assign RFWData = SavePC ? PCplus1 : WBData;
    assign ExtendedNum=ExtWay ? signExt : zeroExt;
    assign ALUinputA=RFRData1;
    assign ALUinputB=ALUSrc ? ExtendedNum : RFRData2;
    assign MemAdrsD=ALUoutput;
    assign MemAdrsSel=IorD ? MemAdrsI : MemAdrsD;
-   assign MemData=IorD ? 16'hzzzz : RFRData2;
+   assign MemData= (IorD==0 && MemWrite) ? RFRData2 : 16'hzzzz ;
    assign inst = IorD ? MemData : 16'hzzzz;
-   assign WB = IorD ? 16'hzzzz : MemData;
+   assign WBMem = IorD ? 16'hzzzz : MemData;
+   assign WBData = MemtoReg ? WBMem : ALUoutput;
+   assign inst_stabil=instbuf;
 
+   assign output_port = RFRData1;
+
+   // always @(RFRData1) begin
+   //    output_port=RFRData1;   
+   // end
+   
    always @(inst) begin
-      instbuf=inst;
+      if(inst!==16'hzzzz)	
+		 begin
+            instbuf=inst;
+		end
    end
 
-   PC pcounter(PCIn, PCOut, PVSWriteEnPC);
-   Memory memory(clk, Reset_N, MemRead, MemWrite, MemAdrsSel, MemData);
-   ALUcontrol aluCon(inst, ALUConOut);
-   ALU alu(ALUinputA, ALUinputB, ALUConOut, bcond);
-   NumberExtender ext(inst[7:0], signExt, zeroExt);
-   RF regfile(RFRName1, RFRName2, RFWName, RFWData, RegWrite, RFRData1, RFRData2, PVSWriteEnReg);
+   PC pcounter(PCIn, PCOut, PVSWriteEnPC, Reset_N, clk);
+   ALUcontrol aluCon(inst_stabil, ALUConOut);
+   ALU alu(ALUinputA, ALUinputB, ALUConOut, ALUoutput, bcond);
+   NumberExtender ext(inst_stabil[7:0], signExt, zeroExt);
+   RF regfile(RFRName1, RFRName2, RFWName, RFWData, RegWrite, RFRData1, RFRData2, PVSWriteEnReg, clk);
+   //module RF(readregA, readregB, writereg, writedata, RegWrite, regoutA, regoutB, PVSWriteEn, clk);
+
 endmodule
